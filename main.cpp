@@ -1,0 +1,667 @@
+#include <iostream>
+
+// Структура для последовательного контейнера (массив)
+// template <typename T>
+struct SequentialContainer {
+    int* data; // Указатель на массив для хранения элементов
+    int size; // Текущее количество элементов
+    int capacity; // Максимальная емкость массива
+
+    // Конструктор
+    SequentialContainer() : data(nullptr), size(0), capacity(0) {}
+
+    // Деструктор
+    ~SequentialContainer() {
+    delete[] data;
+    }
+    
+
+    // Перемещающий конструктор
+    SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+        other.data = nullptr; // Освобождаем указатель у другого объекта
+        other.size = 0;
+        other.capacity = 0;
+    }
+
+    // Перемещающий оператор присваивания
+    SequentialContainer& operator=(SequentialContainer&& other) noexcept {
+        if (this != &other) {
+        delete[] data; // Освобождаем текущие ресурсы
+        data = other.data;
+        size = other.size;
+        capacity = other.capacity;
+
+        other.data = nullptr; // Освобождаем указатель у другого объекта
+        other.size = 0;
+        other.capacity = 0;
+        }
+        return *this;
+    }
+
+    // Функция для увеличения емкости
+    void resize() {
+        capacity = capacity == 0 ? 1 : static_cast<int>(capacity * 1.5); // Увеличиваем емкость на 50%
+        int* newData = new int[capacity]; // Выделяем новую память
+        for (int i = 0; i < size; ++i) {
+            newData[i] = data[i]; // Копируем старые данные в новую память
+        }
+        delete[] data; // Освобождаем старую память
+        data = newData; // Перенаправляем указатель на новую память
+    }
+
+    // Добавление элемента в конец
+    void push_back(int value) {
+        if (size == capacity) {
+            resize(); // Изменяем размер, если емкость заполнена
+        }
+        data[size++] = value; // Добавляем элемент и увеличиваем размер
+    }
+    // Добавление элемента в начало
+    void push_front(int value) {
+        if (size == capacity) {
+            resize(); // Изменяем размер, если емкость заполнена
+        }
+        // Сдвигаем все элементы на один вправо
+        for (int i = size; i > 0; --i) {
+            data[i] = data[i - 1];
+        }
+        data[0] = value; // Вставляем новый элемент в начало
+        ++size;
+    }
+
+    // Добавление элемента в указанный индекс
+    void insert(int index, int value) {
+        if (index < 0 || index > size) {
+            throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+        }
+        if (size == capacity) {
+            resize(); // Изменяем размер, если емкость заполнена
+        }
+        // Сдвигаем элементы вправо, начиная с указанного индекса
+        for (int i = size; i > index; --i) {
+            data[i] = data[i - 1];
+        }
+        data[index] = value; // Вставляем значение в указанный индекс
+        ++size;
+    }
+
+
+    // Удаление элемента по индексу
+    void erase(int index) {
+    if (index < 0 || index >= size) {
+        throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+    }
+    for (int i = index; i < size - 1; ++i) {
+        data[i] = data[i + 1];// Сдвинаем элементы влево
+    }
+    --size;// Уменьшаем размер
+    }
+
+    // Получение размера контейнера
+    int getSize() const {
+        return size; // Возвращаем текущее количество элементов
+    }
+
+    // Получение размера контейнера
+    int getCapacity() const {
+        return capacity; // Возвращаем текущее количество элементов
+    }
+
+    // Вывод содержимого контейнера
+    void print() const {
+    for (int i = 0; i < size; ++i) {
+        std::cout << data[i] << " ";
+    }
+    std::cout << std::endl;
+    }
+
+    // Оператор [] для доступа к элементам по индексу (новый)
+    int& operator[](int index) {
+        if (index < 0 || index >= size) {      
+            // Обработка недопустимого индекса (выбрасывание исключения)
+            throw std::out_of_range("Индекс вне диапазона");
+        }
+        return data[index];// Возвращаем элемент по индексу
+    }
+
+    // Структура итератора для SequentialContainer
+    struct Iterator {
+        int* ptr;
+
+        // Конструктор
+        Iterator(int* ptr) : ptr(ptr) {}
+
+        // Оператор разыменования
+        int operator*() {
+            if (ptr==nullptr) {
+                throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+            }
+            return *ptr;
+        }
+        int& get() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+            }
+            return *ptr;
+        }
+
+        // Оператор сравнения (для проверки конца итерации)
+        bool operator!=(const Iterator& other) {
+            return ptr != other.ptr;
+        }
+
+        // Перемещение итератора на следующий элемент
+        Iterator& operator++() {
+            ptr++;
+            return *this;
+        }
+
+    };
+    // Возвращает итератор на начало контейнера
+    Iterator begin() {
+        return Iterator(data);
+    }
+
+    // Возвращает итератор на конец контейнера
+    Iterator end() {
+        return Iterator(data + size);
+    }
+};
+
+
+// Класс для спискового контейнера (связь через указатели)
+class DoubleLinkedList {
+private:
+    struct Node {
+        int value;
+        Node* next;
+        Node* prev;
+
+        Node(int value) : value(value), next(nullptr), prev(nullptr) {}
+    };
+
+    Node* head;
+    Node* tail;
+    int size;
+
+public:
+    // Конструктор
+    DoubleLinkedList() : head(nullptr), tail(nullptr), size(0) {}
+
+    // Деструктор
+    ~DoubleLinkedList() {
+        while (head != nullptr) {
+            Node* next = head->next;
+            delete head;
+            head = next;
+        }
+    }
+
+    // Перемещающий конструктор
+    DoubleLinkedList(DoubleLinkedList&& other) noexcept: head(other.head), tail(other.tail), size(other.size) {
+        other.head = nullptr;
+        other.tail = nullptr;
+        other.size = 0;
+    }
+
+    // Перемещающий оператор присваивания
+    DoubleLinkedList& operator=(DoubleLinkedList&& other) noexcept {
+        if (this != &other) {
+        // Освобождение текущих ресурсов
+        while (head != nullptr) {
+            Node* next = head->next;
+            delete head;
+            head = next;
+        }
+
+        head = other.head;
+        tail = other.tail;
+        size = other.size;
+
+        other.head = nullptr;
+        other.tail = nullptr;
+        other.size = 0;
+        }
+        return *this;
+    }
+    
+    // Добавление элемента в конец
+    void push_back(int value) {
+        Node* newNode = new Node(value);
+        if (head == nullptr) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+        ++size;
+    }
+
+    // Добавление элемента в начало
+    void push_front(int value) {
+        Node* newNode = new Node(value);
+        if (head == nullptr) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            newNode->next = head;
+            head->prev = newNode;
+            head = newNode;
+        }
+        ++size;
+    }
+
+    // Добавление элемента по индексу
+    void insert(int index, int value) {
+        if (index < 0 || index > size) {
+            throw std::out_of_range("Индекс вне допустимого диапазона");
+        }
+        if (index == 0) {
+            push_front(value);
+            return;
+        } else if (index == size) {
+            push_back(value);
+            return;
+        }
+
+        Node* newNode = new Node(value);
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+
+        newNode->next = current;
+        newNode->prev = current->prev;
+        current->prev->next = newNode;
+        current->prev = newNode;
+
+        ++size;
+    }
+
+    // Удаление элемента по индексу
+    void erase(int index) {
+        if (index < 0 || index >= size) {
+            throw std::out_of_range("Индекс вне допустимого диапазона");
+        }
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+
+        if (current->prev) {
+            current->prev->next = current->next;
+        } else {
+            head = current->next; // Удаление головного элемента
+        }
+
+        if (current->next) {
+            current->next->prev = current->prev;
+        } else {
+            tail = current->prev; // Удаление хвостового элемента
+        }
+
+        delete current;
+        --size;
+    }
+
+    // Получение размера контейнера
+    int getSize() const {
+        return size;
+    }
+
+    // Вывод содержимого контейнера
+    void print() const {
+        Node* current = head;
+        while (current != nullptr) {
+            std::cout << current->value << " ";
+            current = current->next;
+        }
+        std::cout << std::endl;
+    }
+
+    // Оператор [] для доступа к элементам по индексу
+    int& operator[](int index) {
+        if (index < 0 || index >= size) {
+            throw std::out_of_range("Индекс вне диапазона");
+        }
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        return current->value;
+    }
+    // Структура итератора для DoubleLinkedList
+    struct Iterator {
+        Node* ptr;
+
+        // Конструктор
+        Iterator(Node* ptr) : ptr(ptr) {}
+
+        // Оператор разыменования
+        int operator*() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона");
+            }
+            return ptr->value;
+        }
+
+        // Оператор сравнения (для проверки конца итерации)
+        bool operator!=(const Iterator& other) {
+            return ptr != other.ptr;
+        }
+
+        // Перемещение итератора на следующий элемент
+        Iterator& operator++() {
+            ptr = ptr->next;
+            return *this;
+        }
+
+        int& get() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона");
+            }
+            return ptr->value;
+        }
+    };
+
+    // Возвращает итератор на начало контейнера
+    Iterator begin() {
+        return Iterator(head);
+    }
+
+    // Возвращает итератор на конец контейнера
+    Iterator end() {
+        return Iterator(nullptr);
+    }
+};
+
+// Однонаправленный списковый контейнер
+class SinglyLinkedList {
+private:
+    struct Node {
+        int value;
+        Node* next;
+
+        Node(int value) : value(value), next(nullptr) {}
+    };
+
+    Node* head;
+    int size;
+
+public:
+    // Конструктор
+    SinglyLinkedList() : head(nullptr), size(0) {}
+
+    // Деструктор
+    ~SinglyLinkedList() {
+        while (head != nullptr) {
+            Node* next = head->next;
+            delete head;
+            head = next;
+        }
+    }
+
+    // Перемещающий конструктор
+    SinglyLinkedList(SinglyLinkedList&& other) noexcept:  head(other.head), size(other.size) {
+        other.head = nullptr;
+        other.size = 0;
+    }
+
+    // Перемещающий оператор присваивания
+    SinglyLinkedList& operator=(SinglyLinkedList&& other) noexcept {
+        if (this != &other) {
+            while (head != nullptr) {
+                Node* temp = head;
+                head = head->next;
+                delete temp;
+            }
+            head = other.head;
+            size = other.size;
+
+            other.head = nullptr;
+            other.size = 0;
+        }
+        return *this;
+    }    
+
+    // Добавление элемента в конец
+    void push_back(int value) {
+        Node* newNode = new Node(value);
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            Node* current = head;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            current->next = newNode;
+        }
+        ++size;
+    }
+
+    // Добавление элемента в начало
+    void push_front(int value) {
+        Node* newNode = new Node(value);
+        newNode->next = head;
+        head = newNode;
+        ++size;
+    }
+
+
+    // Метод для вставки элемента по индексу
+    void insert(int index, int value) {
+        if (index < 0 || index > size) {
+            throw std::out_of_range("Индекс вне допустимого диапазона");
+        }
+        if (index == 0) {
+            push_front(value);
+            return;
+        }
+        if (index == size) {
+            push_back(value);
+            return;
+        }
+
+        Node* newNode = new Node(value);
+        Node* current = head;
+        for (int i = 0; i < index - 1; ++i) {
+            current = current->next;
+        }
+        newNode->next = current->next;
+        current->next = newNode;
+        ++size;
+    }
+
+    // Удаление элемента по индексу
+    void erase(int index) {
+        if (index < 0 || index >= size) {
+            throw std::out_of_range("Индекс вне допустимого диапазона");
+        }
+        Node* current = head;
+        if (index == 0) {
+            head = current->next;
+            delete current;
+        } else {
+            Node* prev = nullptr;
+            for (int i = 0; i < index; ++i) {
+                prev = current;
+                current = current->next;
+            }
+            prev->next = current->next;
+            delete current;
+        }
+        --size;
+    }
+
+    // Получение размера контейнера
+    int getSize() const {
+        return size;
+    }
+
+    // Вывод содержимого контейнера
+    void print() const {
+        Node* current = head;
+        while (current != nullptr) {
+            std::cout << current->value << " ";
+            current = current->next;
+        }
+        std::cout << std::endl;
+    }
+
+    // Оператор [] для доступа к элементам по индексу
+    int& operator[](int index) {
+        if (index < 0 || index >= size) {
+            throw std::out_of_range("Индекс вне диапазона");
+        }
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        return current->value;
+    }
+    
+    // Структура итератора для SinglyLinkedList
+    struct Iterator {
+        Node* ptr;
+
+        // Конструктор
+        Iterator(Node* ptr) : ptr(ptr) {}
+
+        // Оператор разыменования
+        int operator*() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона");
+            }            
+            return ptr->value;
+        }
+
+        // Оператор сравнения (для проверки конца итерации)
+        bool operator!=(const Iterator& other) {
+            return ptr != other.ptr;
+        }
+
+        // Перемещение итератора на следующий элемент
+        Iterator& operator++() {
+            ptr = ptr->next;
+            return *this;
+        }
+        int& get() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона");
+            }
+            return ptr->value;
+        }
+    };
+    // Возвращает итератор на начало контейнера
+    Iterator begin() {
+        return Iterator(head);
+    }
+
+    // Возвращает итератор на конец контейнера
+    Iterator end() {
+        return Iterator(nullptr);
+    }
+};
+
+int main() {
+    // system("chcp 866"); 
+    // Создание объектов контейнеров
+    SequentialContainer vec;
+    DoubleLinkedList  Double_lst;
+    SinglyLinkedList  Singl_lst;
+    // Добавление элементов
+    for (int i = 0; i < 10; ++i) {
+        vec.push_back(i);
+        Double_lst.push_back(i);
+        Singl_lst.push_back(i);
+    }
+
+    // Вывод содержимого
+    std::cout <<"Вектор:" << std::endl;
+    vec.print();
+
+    std::cout << "Односвязный cписок:" << std::endl;
+    Double_lst.print();
+
+    std::cout << "Двусвязный cписок:" << std::endl;
+    Singl_lst.print();
+
+    // Вывод размера
+    std::cout << "Размер вектора: " << std::endl;
+    std::cout << vec.getSize() << std::endl;
+    std::cout << "Размер односвязного списка: " <<std::endl;
+    std::cout << Double_lst.getSize() << std::endl;
+    std::cout << "Размер двусвязного списка: " <<std::endl;
+    std::cout << Singl_lst.getSize() << std::endl;
+
+    // Удаление элементов
+    vec.erase(2); // Удаление третьего элемента
+    vec.erase(3); // Удаление пятого элемента
+    vec.erase(4); // Удаление седьмого элемента
+
+    Double_lst.erase(2); // Удаление третьего элемента
+    Double_lst.erase(3); // Удаление пятого элемента
+    Double_lst.erase(4); // Удаление седьмого элемента
+
+    Singl_lst.erase(2);
+    Singl_lst.erase(3);
+    Singl_lst.erase(4);
+
+    // Вывод содержимого после удаления
+    std::cout << "Вектор после удаления:" << std::endl;
+    vec.print();
+
+    std::cout << "Односвязный cписок после удаления:" << std::endl;
+    Double_lst.print();
+
+    std::cout << "Двусвязный cписок после удаления:" << std::endl;
+    Singl_lst.print();
+
+    // Добавление элемента в начало
+    vec.push_front(10);
+    Double_lst.push_front(10);
+    Singl_lst.push_front(10);
+
+    // Вывод содержимого после добавления в начало
+    std::cout << "Вектор после добавления элемента в начало:" << std::endl;
+    vec.print();
+
+    std::cout << "Односвязный список после добавления элемента в начало:" << std::endl;
+    Double_lst.print();
+
+    std::cout << "Двусвязный список после добавления элемента в начало:" << std::endl;
+    Singl_lst.print();
+
+    // Вставка в середину
+    vec.insert(vec.getSize() / 2, 20); // Вставка в середину вектора
+    Double_lst.insert(Double_lst.getSize() / 2, 20); // Вставка в середину списка
+    Singl_lst.insert(Singl_lst.getSize() / 2, 20);
+
+    // Вывод содержимого после добавления в середину
+    std::cout << "Вектор после добавления элемента в середину:" << std::endl;
+    vec.print();
+
+    std::cout << "Односвязный список после добавления элемента в середину:" << std::endl;
+    Double_lst.print();
+
+    std::cout << "Двусвязный список после добавления элемента в середину:" << std::endl;
+    Singl_lst.print();
+
+    // Добавление элемента в конец
+    vec.push_back(30);
+    Double_lst.push_back(30);
+    Singl_lst.push_back(30);
+
+    // Вывод содержимого после добавления в конец
+    std::cout << "Вектор после добавления элемента в конец:" << std::endl;
+    vec.print();
+
+    std::cout << "Односвязный список после добавления элемента в конец:" << std::endl;
+    Double_lst.print();
+
+    std::cout << "Двусвязный список после добавления элемента в конец:" << std::endl;
+    Singl_lst.print();
+    return 0;
+}
