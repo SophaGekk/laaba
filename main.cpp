@@ -9,27 +9,20 @@ struct SequentialContainer {
 
     // Конструктор
     SequentialContainer() : data(nullptr), size(0), capacity(0) {}
-
-    // Деструктор
-    ~SequentialContainer() {
-    delete[] data;
-    }
     
-
     // Перемещающий конструктор
-    
-    // SequentialContainer(SequentialContainer&& other) noexcept
-    // : data(std::move(other.data)), size(other.size), capacity(other.capacity) {
-    //     other.data = nullptr; // Освобождаем указатель у другого объекта
-    //     other.size = 0;
-    //     other.capacity = 0;
-    // }
-
-    SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+    SequentialContainer(SequentialContainer&& other) noexcept
+    : data(std::move(other.data)), size(other.size), capacity(other.capacity) {
         other.data = nullptr; // Освобождаем указатель у другого объекта
         other.size = 0;
         other.capacity = 0;
     }
+
+    // SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+    //     other.data = nullptr; // Освобождаем указатель у другого объекта
+    //     other.size = 0;
+    //     other.capacity = 0;
+    // }
 
     // Перемещающий оператор присваивания
     SequentialContainer& operator=(SequentialContainer&& other) noexcept {
@@ -140,7 +133,7 @@ struct SequentialContainer {
         Iterator(int* ptr) : ptr(ptr) {}
 
         // Оператор разыменования
-        int operator*() {
+        int& operator*() {
             if (ptr==nullptr) {
                 throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
             }
@@ -173,6 +166,11 @@ struct SequentialContainer {
     // Возвращает итератор на конец контейнера
     Iterator end() {
         return Iterator(data + size);
+    }
+
+    // Деструктор
+    ~SequentialContainer() {
+    delete[] data;
     }
 };
 
@@ -533,11 +531,11 @@ public:
     }
 
     // Структура итератора для SinglyLinkedList
-    struct Iterators {
+    struct Iterator {
         Node* ptr;
 
         // Конструктор
-        Iterators(Node* ptr) : ptr(ptr) {}
+        Iterator(Node* ptr) : ptr(ptr) {}
 
         // Оператор разыменования
         int operator*() {
@@ -548,12 +546,12 @@ public:
         }
 
         // Оператор сравнения (для проверки конца итерации)
-        bool operator!=(const Iterators& other) {
+        bool operator!=(const Iterator& other) {
             return ptr != other.ptr;
         }
 
         // Перемещение итератора на следующий элемент
-        Iterators& operator++() {
+        Iterator& operator++() {
             ptr = ptr->next;
             return *this;
         }
@@ -565,13 +563,13 @@ public:
         }
     };
     // Возвращает итератор на начало контейнера
-    Iterators begin() {
-        return Iterators(head);
+    Iterator begin() {
+        return Iterator(head);
     }
 
     // Возвращает итератор на конец контейнера
-    Iterators end() {
-        return Iterators(nullptr);
+    Iterator end() {
+        return Iterator(nullptr);
     }
 };
 
@@ -624,6 +622,77 @@ void testContainer(const std::string& name, T& container) {
 
     std::cout << std::endl;
 }
+template <typename Type>
+void demonstrateMoveSemantics(const std::string& name) {
+    std::cout << "Демонстрация семантики перемещения для " << name << ":\n";
+    Type conte;
+    conte.push_back(0);
+    conte.push_back(1);
+    conte.push_back(0);
+    conte.push_back(1);
+    std::cout << "conte не пуст: ";
+    conte.print();
+    std::cout << std::endl;
+
+    Type moved_container = std::move(conte); // Перемещение контейнера
+    moved_container.print();
+    std::cout << std::endl;
+
+    std::cout << "Содержимое conte после перемещения: ";
+    conte.print(); // Проверяем содержимое первого контейнера (должен быть пустым)
+    std::cout << std::endl;
+
+    if (conte.getSize() == 0) {
+        std::cout << "conte успешно перемещен и теперь пуст." << std::endl;
+    } else {
+        std::cout << "Ошибка: conte не пуст!" << std::endl;
+    }
+    std::cout << std::endl;
+
+    Type movements_conteiner;
+    movements_conteiner.push_back(10);
+    movements_conteiner.push_back(11);
+    movements_conteiner.push_back(2);
+    std::cout << "movements_conteiner не пуст: ";
+    movements_conteiner.print();
+    std::cout << std::endl;
+
+    movements_conteiner = std::move(moved_container); // Перемещение контейнера
+    movements_conteiner.print();
+    std::cout << std::endl;
+
+    std::cout << "Содержимое moved_container после перемещения: ";
+    moved_container.print(); // Проверяем содержимое первого контейнера (должен быть пустым)
+    std::cout << std::endl;
+
+    if (moved_container.getSize() == 0) {
+        std::cout << "moved_container успешно перемещен и теперь пуст." << std::endl;
+    } else {
+        std::cout << "Ошибка: moved_container не пуст!" << std::endl;
+    }
+    std::cout << std::endl;
+
+}
+
+template <typename Type>
+void demonstrateIterator(const std::string& name) 
+{
+    std::cout << "Демонстрация Iterator для " << name << ":\n";
+    Type conteiner;
+    // Добавление элементов
+    for (int i = 0; i < 10; ++i) {
+        conteiner.push_back(i);
+    }
+
+    std::cout << "Содержимое контейнера, выведенное с помощью итератора: ";
+    for (auto iter = conteiner.begin(); iter != conteiner.end(); ++iter) {
+        // std::cout << *iter << " ";
+        std::cout << iter.get()<< " ";
+    }
+    std::cout << std::endl;    
+    
+
+}
 int main() {
     // system("chcp 866"); 
     // Создание объектов контейнеров
@@ -636,5 +705,12 @@ int main() {
     testContainer("DoubleLinkedList", Double_lst);
     testContainer("SinglyLinkedList", Singl_lst);
 
+    demonstrateMoveSemantics<SequentialContainer>("SequentialContainer");
+    demonstrateMoveSemantics<DoubleLinkedList>("DoubleLinkedList");
+    demonstrateMoveSemantics<SinglyLinkedList>("SinglyLinkedList");
+
+    demonstrateIterator<SequentialContainer>("SequentialContainer");
+    demonstrateIterator<DoubleLinkedList>("DoubleLinkedList");
+    demonstrateIterator<SinglyLinkedList>("SinglyLinkedList");
     return 0;
 }
