@@ -22,7 +22,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CPACK_GENERATOR ZIP) # Настройка CPack для создания пакетов ZIP (macOS)
 endif()
 # Установка пакета ZIP для Windows 
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows") 
+if (CMAKE_SYSTEM_NAME STREQUAL "win64") 
   set(CPACK_GENERATOR ZIP) # Настройка CPack для создания пакетов ZIP (Windows) 
 endif()
 
