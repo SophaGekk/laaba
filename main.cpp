@@ -125,11 +125,11 @@ struct SequentialContainer {
     }
 
     // Структура итератора для SequentialContainer
-    struct Iterator {
+    struct SequentialContainerIterator {
         int* ptr;
 
         // Конструктор
-        Iterator(int* ptr) : ptr(ptr) {}
+        SequentialContainerIterator(int* ptr) : ptr(ptr) {}
 
         // Оператор разыменования
         int operator*() {
@@ -146,25 +146,25 @@ struct SequentialContainer {
         }
 
         // Оператор сравнения (для проверки конца итерации)
-        bool operator!=(const Iterator& other) {
+        bool operator!=(const SequentialContainerIterator& other) {
             return ptr != other.ptr;
         }
 
         // Перемещение итератора на следующий элемент
-        Iterator& operator++() {
+        SequentialContainerIterator& operator++() {
             ptr++;
             return *this;
         }
 
     };
     // Возвращает итератор на начало контейнера
-    Iterator begin() {
-        return Iterator(data);
+    SequentialContainerIterator begin() {
+        return SequentialContainerIterator(data);
     }
 
     // Возвращает итератор на конец контейнера
-    Iterator end() {
-        return Iterator(data + size);
+    SequentialContainerIterator end() {
+        return SequentialContainerIterator(data + size);
     }
 };
 
@@ -333,11 +333,11 @@ public:
         return current->value;
     }
     // Структура итератора для DoubleLinkedList
-    struct Iterator {
+    struct DoubleLinkedListIterator {
         Node* ptr;
 
         // Конструктор
-        Iterator(Node* ptr) : ptr(ptr) {}
+        DoubleLinkedListIterator(Node* ptr) : ptr(ptr) {}
 
         // Оператор разыменования
         int operator*() {
@@ -348,12 +348,12 @@ public:
         }
 
         // Оператор сравнения (для проверки конца итерации)
-        bool operator!=(const Iterator& other) {
+        bool operator!=(const DoubleLinkedListIterator& other) {
             return ptr != other.ptr;
         }
 
         // Перемещение итератора на следующий элемент
-        Iterator& operator++() {
+        DoubleLinkedListIterator& operator++() {
             ptr = ptr->next;
             return *this;
         }
@@ -367,13 +367,13 @@ public:
     };
 
     // Возвращает итератор на начало контейнера
-    Iterator begin() {
-        return Iterator(head);
+    DoubleLinkedListIterator begin() {
+        return DoubleLinkedListIterator(head);
     }
 
     // Возвращает итератор на конец контейнера
-    Iterator end() {
-        return Iterator(nullptr);
+    DoubleLinkedListIterator end() {
+        return DoubleLinkedListIterator(nullptr);
     }
 };
 
