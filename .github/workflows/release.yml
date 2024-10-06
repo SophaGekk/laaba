@@ -50,90 +50,36 @@ jobs:
   #         asset_path: ./laba3-0.0.${{ github.run_number }}-Darwin.zip
   #         asset_name: laba3-0.0.${{ github.run_number }}-Darwin.zip
   #         asset_content_type: application/zip
+  
   build_windows:
-    # Runs on windows-latest
     runs-on: windows-latest
-    # Provides write permissions to all resources
     permissions: write-all
     steps:
-      # Checks out the repository, including submodules
       - uses: actions/checkout@v3
         with:
           submodules: true
-      # Configures the project with CMake, using the run number for PATCH_VERSION
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
-      # Builds the project with CMake
       - run: cmake --build .
-      # Creates a package
       - run: cmake --build . --target package
-      # Creates a release for Windows
-      - name: Create Release (Windows)
+      - name: List files
+        run: dir
+      - name: Create Release (windows)
         id: create_release_windows
-        # Uses an action to create a release
         uses: actions/create-release@v1
-        # Uses GITHUB_TOKEN for authentication
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Sets tag_name, release_name, and other parameters
         with:
-          tag_name: ${{ github.run_number }} # Uses the run number for the tag
-          release_name: Release ${{ github.run_number }} (Windows)
-          draft: false # Does not publish the release as a draft
-          prerelease: false # Does not publish as a pre-release
-      # Uploads the release asset for Windows
-      - name: Upload Release Asset (Windows)
-        id: upload-release-asset-windows
+          tag_name: windows${{ github.run_number }}
+          release_name: Release ${{ github.run_number }} (windows)
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset (windows)
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_windows.outputs.upload_url }}
-          asset_path: ./laba3-0.0.${{ github.run_number }}-Windows.zip
-          asset_name: laba3-0.0.${{ github.run_number }}-Windows.zip
+          asset_path: ./lab03-0.0.${{ github.run_number }}-win64.zip
+          asset_name: lab03-0.0.${{ github.run_number }}-win64.zip
           asset_content_type: application/zip
-  
-  build_ubuntu:
-    # Запускаем job на ubuntu-latest
-    runs-on: ubuntu-latest
-    # Предоставляем разрешения на запись во все ресурсы
-    permissions: write-all
-    steps:
-      # Клонируем репозиторий, включая submodules
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      # Конфигурируем проект с помощью CMake, используя номер запуска для PATCH_VERSION
-      - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
-      # Строим проект с помощью CMake
-      - run: cmake --build .
-      # Создаем пакет
-      - run: cmake --build . --target package
-      # Создаем релиз для Ubuntu
-      - name: Create Release (Ubuntu)
-        id: create_release_ubuntu
-        # Используем action для создания релиза
-        uses: actions/create-release@v1
-        # Используем GITHUB_TOKEN для аутентификации
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Устанавливаем tag_name, release_name и другие параметры
-        with:
-          tag_name: v${{ github.run_number }} # Используем номер запуска для тега
-          release_name: Release ${{ github.run_number }} (Ubuntu)
-          draft: false # Не публикуем релиз в черновике
-          prerelease: false # Не публикуем как предварительную версию
-      # Загружаем релизный ассет для Ubuntu
-      - name: Upload Release Asset (Ubuntu)
-        id: upload-release-asset-ubuntu
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release_ubuntu.outputs.upload_url }}
-          asset_path: ./laba3-0.0.${{ github.run_number }}-Linux.deb
-          asset_name: laba3-0.0.${{ github.run_number }}-Linux.deb
-          asset_content_type: application/vnd.debian.binary-package
-          allowUpdates: true # Разрешаем обновление уже загруженного ассета
-
-
-    
