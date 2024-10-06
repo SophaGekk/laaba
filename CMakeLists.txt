@@ -21,11 +21,10 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(CPACK_GENERATOR ZIP) # Настройка CPack для создания пакетов ZIP (macOS)
 endif()
-# Установка пакета ZIP для Windows 
-if (CMAKE_SYSTEM_NAME STREQUAL "win64") 
-  set(CPACK_GENERATOR ZIP) # Настройка CPack для создания пакетов ZIP (Windows) 
+# Установка пакета ZIP для Windows
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(CPACK_GENERATOR ZIP) # Настройка CPack для создания пакетов ZIP (macOS)
 endif()
-
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
