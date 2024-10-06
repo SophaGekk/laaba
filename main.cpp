@@ -1,38 +1,5 @@
 #include <iostream>
 
-// Структура итератора для SequentialContainer
-struct Iterator {
-    int* ptr;
-
-    // Конструктор
-    Iterator(int* ptr) : ptr(ptr) {}
-
-    // Оператор разыменования
-    int operator*() {
-        if (ptr==nullptr) {
-            throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
-        }
-        return *ptr;
-    }
-    int& get() {
-        if (ptr == nullptr) {
-            throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
-        }
-        return *ptr;
-    }
-
-    // Оператор сравнения (для проверки конца итерации)
-    bool operator!=(const Iterator& other) {
-        return ptr != other.ptr;
-    }
-
-    // Перемещение итератора на следующий элемент
-    Iterator& operator++() {
-        ptr++;
-        return *this;
-    }
-
-};
 // Структура для последовательного контейнера (массив)
 // template <typename T>
 struct SequentialContainer {
@@ -50,11 +17,18 @@ struct SequentialContainer {
     
 
     // Перемещающий конструктор
-    SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+    SequentialContainer(SequentialContainer&& other) noexcept
+    : data(std::move(other.data)), size(other.size), capacity(other.capacity) {
         other.data = nullptr; // Освобождаем указатель у другого объекта
         other.size = 0;
         other.capacity = 0;
     }
+
+    // SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+    //     other.data = nullptr; // Освобождаем указатель у другого объекта
+    //     other.size = 0;
+    //     other.capacity = 0;
+    // }
 
     // Перемещающий оператор присваивания
     SequentialContainer& operator=(SequentialContainer&& other) noexcept {
@@ -157,39 +131,39 @@ struct SequentialContainer {
         return data[index];// Возвращаем элемент по индексу
     }
 
-    // // Структура итератора для SequentialContainer
-    // struct Iterator {
-    //     int* ptr;
+    // Структура итератора для SequentialContainer
+    struct Iterator {
+        int* ptr;
 
-    //     // Конструктор
-    //     Iterator(int* ptr) : ptr(ptr) {}
+        // Конструктор
+        Iterator(int* ptr) : ptr(ptr) {}
 
-    //     // Оператор разыменования
-    //     int operator*() {
-    //         if (ptr==nullptr) {
-    //             throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
-    //         }
-    //         return *ptr;
-    //     }
-    //     int& get() {
-    //         if (ptr == nullptr) {
-    //             throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
-    //         }
-    //         return *ptr;
-    //     }
+        // Оператор разыменования
+        int operator*() {
+            if (ptr==nullptr) {
+                throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+            }
+            return *ptr;
+        }
+        int& get() {
+            if (ptr == nullptr) {
+                throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+            }
+            return *ptr;
+        }
 
-    //     // Оператор сравнения (для проверки конца итерации)
-    //     bool operator!=(const Iterator& other) {
-    //         return ptr != other.ptr;
-    //     }
+        // Оператор сравнения (для проверки конца итерации)
+        bool operator!=(const Iterator& other) {
+            return ptr != other.ptr;
+        }
 
-    //     // Перемещение итератора на следующий элемент
-    //     Iterator& operator++() {
-    //         ptr++;
-    //         return *this;
-    //     }
+        // Перемещение итератора на следующий элемент
+        Iterator& operator++() {
+            ptr++;
+            return *this;
+        }
 
-    // };
+    };
     // Возвращает итератор на начало контейнера
     Iterator begin() {
         return Iterator(data);
@@ -231,7 +205,9 @@ public:
     }
 
     // Перемещающий конструктор
-    DoubleLinkedList(DoubleLinkedList&& other) noexcept: head(other.head), tail(other.tail), size(other.size) {
+    // DoubleLinkedList(DoubleLinkedList&& other) noexcept: head(other.head), tail(other.tail), size(other.size) {
+    DoubleLinkedList(DoubleLinkedList&& other) noexcept
+    : head(std::move(other.head)), tail(std::move(other.tail)), size(other.size){
         other.head = nullptr;
         other.tail = nullptr;
         other.size = 0;
