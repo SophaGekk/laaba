@@ -50,7 +50,47 @@ jobs:
   #         asset_path: ./laba3-0.0.${{ github.run_number }}-Darwin.zip
   #         asset_name: laba3-0.0.${{ github.run_number }}-Darwin.zip
   #         asset_content_type: application/zip
-
+  build_windows:
+    # Runs on windows-latest
+    runs-on: windows-latest
+    # Provides write permissions to all resources
+    permissions: write-all
+    steps:
+      # Checks out the repository, including submodules
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      # Configures the project with CMake, using the run number for PATCH_VERSION
+      - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
+      # Builds the project with CMake
+      - run: cmake --build .
+      # Creates a package
+      - run: cmake --build . --target package
+      # Creates a release for Windows
+      - name: Create Release (Windows)
+        id: create_release_windows
+        # Uses an action to create a release
+        uses: actions/create-release@v1
+        # Uses GITHUB_TOKEN for authentication
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Sets tag_name, release_name, and other parameters
+        with:
+          tag_name: ${{ github.run_number }} # Uses the run number for the tag
+          release_name: Release ${{ github.run_number }} (Windows)
+          draft: false # Does not publish the release as a draft
+          prerelease: false # Does not publish as a pre-release
+      # Uploads the release asset for Windows
+      - name: Upload Release Asset (Windows)
+        id: upload-release-asset-windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_windows.outputs.upload_url }}
+          asset_path: ./laba3-0.0.${{ github.run_number }}-Windows.zip
+          asset_name: laba3-0.0.${{ github.run_number }}-Windows.zip
+          asset_content_type: application/zip
   
   build_ubuntu:
     # Запускаем job на ubuntu-latest
@@ -94,47 +134,6 @@ jobs:
           asset_name: laba3-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
           allowUpdates: true # Разрешаем обновление уже загруженного ассета
-    
-  build_windows:
-    # Runs on windows-latest
-    runs-on: windows-latest
-    # Provides write permissions to all resources
-    permissions: write-all
-    steps:
-      # Checks out the repository, including submodules
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      # Configures the project with CMake, using the run number for PATCH_VERSION
-      - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
-      # Builds the project with CMake
-      - run: cmake --build .
-      # Creates a package
-      - run: cmake --build . --target package
-      # Creates a release for Windows
-      - name: Create Release (Windows)
-        id: create_release_windows
-        # Uses an action to create a release
-        uses: actions/create-release@v1
-        # Uses GITHUB_TOKEN for authentication
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Sets tag_name, release_name, and other parameters
-        with:
-          tag_name: ${{ github.run_number }} # Uses the run number for the tag
-          release_name: Release ${{ github.run_number }} (Windows)
-          draft: false # Does not publish the release as a draft
-          prerelease: false # Does not publish as a pre-release
-      # Uploads the release asset for Windows
-      - name: Upload Release Asset (Windows)
-        id: upload-release-asset-windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release_windows.outputs.upload_url }}
-          asset_path: ./laba3-0.0.${{ github.run_number }}-Windows.zip
-          asset_name: laba3-0.0.${{ github.run_number }}-Windows.zip
-          asset_content_type: application/zip
+
 
     
