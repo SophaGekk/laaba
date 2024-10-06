@@ -17,18 +17,19 @@ struct SequentialContainer {
     
 
     // Перемещающий конструктор
-    SequentialContainer(SequentialContainer&& other) noexcept
-    : data(std::move(other.data)), size(other.size), capacity(other.capacity) {
-        other.data = nullptr; // Освобождаем указатель у другого объекта
-        other.size = 0;
-        other.capacity = 0;
-    }
-
-    // SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+    
+    // SequentialContainer(SequentialContainer&& other) noexcept
+    // : data(std::move(other.data)), size(other.size), capacity(other.capacity) {
     //     other.data = nullptr; // Освобождаем указатель у другого объекта
     //     other.size = 0;
     //     other.capacity = 0;
     // }
+
+    SequentialContainer(SequentialContainer&& other) noexcept: data(other.data), size(other.size), capacity(other.capacity) {
+        other.data = nullptr; // Освобождаем указатель у другого объекта
+        other.size = 0;
+        other.capacity = 0;
+    }
 
     // Перемещающий оператор присваивания
     SequentialContainer& operator=(SequentialContainer&& other) noexcept {
@@ -532,11 +533,11 @@ public:
     }
 
     // Структура итератора для SinglyLinkedList
-    struct Iterator {
+    struct Iterators {
         Node* ptr;
 
         // Конструктор
-        Iterator(Node* ptr) : ptr(ptr) {}
+        Iterators(Node* ptr) : ptr(ptr) {}
 
         // Оператор разыменования
         int operator*() {
@@ -547,12 +548,12 @@ public:
         }
 
         // Оператор сравнения (для проверки конца итерации)
-        bool operator!=(const Iterator& other) {
+        bool operator!=(const Iterators& other) {
             return ptr != other.ptr;
         }
 
         // Перемещение итератора на следующий элемент
-        Iterator& operator++() {
+        Iterators& operator++() {
             ptr = ptr->next;
             return *this;
         }
@@ -564,13 +565,13 @@ public:
         }
     };
     // Возвращает итератор на начало контейнера
-    Iterator begin() {
-        return Iterator(head);
+    Iterators begin() {
+        return Iterators(head);
     }
 
     // Возвращает итератор на конец контейнера
-    Iterator end() {
-        return Iterator(nullptr);
+    Iterators end() {
+        return Iterators(nullptr);
     }
 };
 
